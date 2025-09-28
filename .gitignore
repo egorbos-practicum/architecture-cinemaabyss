@@ -154,3 +154,13 @@ go.work
 
 # Postman tests reports
 tests/postman/reports/
+
+### JetBrains Rider ###
+*.user
+
+### .NET ###
+bin/
+obj/
+
+### Mac OS ###
+.DS_Store
