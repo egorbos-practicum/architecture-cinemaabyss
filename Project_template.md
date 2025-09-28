@@ -28,8 +28,7 @@
       - "8000:8000"
     environment:
       PORT: 8000
-      MONOLITH_URL: http://monolith:8080
-      #монолит
+      MONOLITH_URL: http://monolith:8080 #монолит
       MOVIES_SERVICE_URL: http://movies-service:8081 #сервис movies
       EVENTS_SERVICE_URL: http://events-service:8082 
       GRADUAL_MIGRATION: "true" # вкл/выкл простого фиче-флага
