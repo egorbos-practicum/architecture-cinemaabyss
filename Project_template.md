@@ -5,13 +5,12 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+[Диаграмма контейнеров системы](diagrams/system-containers-diagram.puml)
 
 # Задание 2
 
 ### 1. Proxy
 Команда КиноБездны уже выделила сервис метаданных о фильмах movies и вам необходимо реализовать бесшовный переход с применением паттерна Strangler Fig в части реализации прокси-сервиса (API Gateway), с помощью которого можно будет постепенно переключать траффик, используя фиче-флаг.
-
 
 Реализуйте сервис на любом языке программирования в ./src/microservices/proxy.
 Конфигурация для запуска сервиса через docker-compose уже добавлена
@@ -29,8 +28,7 @@
       - "8000:8000"
     environment:
       PORT: 8000
-      MONOLITH_URL: http://monolith:8080
-      #монолит
+      MONOLITH_URL: http://monolith:8080 #монолит
       MOVIES_SERVICE_URL: http://movies-service:8081 #сервис movies
       EVENTS_SERVICE_URL: http://events-service:8082 
       GRADUAL_MIGRATION: "true" # вкл/выкл простого фиче-флага
@@ -57,7 +55,13 @@
     - Добавьте в docker-compose новый сервис, kafka там уже есть
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
-Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090
+
+![EventsService](images/service-handling-screenshot.png)
+
+![Topics](images/topics-screenshot.png)
+
+![Tests](images/tests-screenshot.png)
 
 # Задание 3
 

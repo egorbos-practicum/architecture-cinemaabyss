@@ -1,0 +1,95 @@
+@startuml
+!include <C4/C4_Container>
+
+title Диаграмма контейнеров CinemaAbyss
+
+Person(User, "Пользователь", "Просматривает фильмы")
+Person(Administrator, "Администратор", "Управляет контентом и аналитикой")
+
+System_Ext(PaymentSystem, "Платежная система")
+System_Ext(EmailNotificationService, "Email notification service")
+System_Ext(PushNotificationService, "Push notification service")
+System_Ext(CDN, "CDN")
+
+System_Boundary(Backend, "CinemaAbyss") {
+    Container(WebApp, "Веб-приложение", "React", "SPA для просмотра контента")
+    Container(IosApp, "Мобильное приложение (iOS)", "Swift", "Нативное приложение для просмотра")
+    Container(AndroidApp, "Мобильное приложение (Android)", "Kotlin", "Нативное приложение для просмотра")
+
+    Container(ApiGateway, "Точка входа API Gateway", "Nginx", "Маршрутизация запросов")
+
+    Container(UsersService, "Сервис пользователей", ".NET Service", "Управление пользователями системы")
+    Container(CatalogService, "Сервис каталога", ".NET Service", "Управление каталогом фильмов")
+    Container(ContentsService, "Сервис контента", ".NET Service", "Управление контентом")
+    Container(StreamingService, "Сервис просмотра фильмов", ".NET Service", "Формирование ссылок на просмотр")
+    Container(SubscriptionsService, "Сервис подписок", ".NET Service", "Управление подписками пользователей")
+    Container(PaymentsService, "Сервис платежей", ".NET Service", "Управление платежами")
+    Container(EventsService, "Сервис аналитики", ".NET Service", "Сбор и анализ пользовательских событий")
+
+    Container(PaymentsGateway, "Шлюз платежной системы", ".NET Background service", "Интеграция с платежной системой")
+    Container(TranscodingService, "Сервис перекодирования", ".NET Background service", "Транскодирование в HLS/DASH")
+    Container(NotificationService, "Сервис уведомлений", ".NET Service", "Отправка email/push уведомлений")
+
+    ContainerQueue(Queue, "Брокер сообщений", "Apache Kafka", "Асинхронная коммуникация сервисов")
+
+    ContainerDb(UsersDB, "База данных пользователей", "PostgreSQL", "Данные пользователя и авторизация")
+    ContainerDb(CatalogDB, "База данных каталога", "MongoDb", "Метаданные контента и поисковый индекс")
+    ContainerDb(PaymentsDB, "База данных платежей", "PostgreSQL", "Счета на оплату и результаты обработки")
+    ContainerDb(AnalyticDB, "База данных аналитики", "ClickHouse", "Пользовательская аналитика и метрики")
+
+    ContainerDb(Cache, "Кэш", "Redis", "Кэширование часто запрашиваемых данных")
+    Container(S3Storage, "S3 хранилище", "MinIO", "Хранение видеоконтента, трейлеров, скриншотов")
+}
+
+Rel(User, IosApp, "Использует")
+Rel(User, AndroidApp, "Использует")
+Rel(User, WebApp, "Использует")
+Rel(Administrator, WebApp, "Использует")
+
+Rel(IosApp, ApiGateway, "API вызовы", "HTTPS/JSON")
+Rel(AndroidApp, ApiGateway, "API вызовы", "HTTPS/JSON")
+Rel(WebApp, ApiGateway, "API вызовы", "HTTPS/JSON")
+
+Rel(ApiGateway, UsersService, "REST API")
+Rel(ApiGateway, CatalogService, "REST API")
+Rel(ApiGateway, ContentsService, "REST API")
+Rel(ApiGateway, PaymentsService, "REST API")
+Rel(ApiGateway, EventsService, "REST API")
+Rel(ApiGateway, SubscriptionsService, "REST API")
+Rel(ApiGateway, StreamingService, "REST API")
+
+Rel(StreamingService, S3Storage, "Получение presign ссылки", "S3 API")
+Rel(StreamingService, SubscriptionsService, "Получение подписки пользователя", "REST API")
+Rel(StreamingService, CatalogService, "Получение метаданных фильма", "REST API")
+
+Rel(User, CDN, "Получение потока видео", "HLS/DASH")
+Rel(CDN, S3Storage, "Получение и кэширование контента", "S3 API")
+
+Rel(PaymentsService, PaymentsDB, "Получение и запись данных", "SQL")
+Rel(PaymentsService, Queue, "Публикация счетов на оплату", "REST API")
+Rel(Queue, PaymentsGateway, "Передача счетов на оплату", "REST API")
+Rel(PaymentsGateway, PaymentSystem, "Обработка платежа", "HTTPS/JSON")
+Rel(PaymentsGateway, Queue, "Публикация результатов обработки", "REST API")
+Rel(Queue, PaymentsService, "Передача результатов обработки", "REST API")
+
+Rel(ContentsService, Queue, "Публикация заданий на перекодирование", "REST API")
+Rel(Queue, TranscodingService, "Получение заданий на перекодирование", "REST API")
+Rel(TranscodingService, S3Storage, "Загрузка исходных файлов, сохранение результата", "REST API")
+
+Rel(ApiGateway, EventsService, "REST API")
+Rel(EventsService, AnalyticDB, "Получение и запись данных", "HTTP")
+
+Rel(UsersService, UsersDB, "Получение и запись данных", "SQL")
+Rel(UsersService, Cache, "Кэш сессий пользователей", "Redis Protocol")
+
+Rel(CatalogService, CatalogDB, "Получение и запись данных", "MongoDB Protocol")
+Rel(CatalogService, Cache, "Кэш популярного контента", "Redis Protocol")
+
+Rel(Queue, NotificationService, "Подписка на события", "REST API")
+Rel(NotificationService, EmailNotificationService, "Отправка уведомлений", "HTTPS/JSON")
+Rel(NotificationService, PushNotificationService, "Отправка уведомлений", "HTTPS/JSON")
+
+Rel(ContentsService, CatalogService, "Обновление каталога", "REST API")
+Rel(ContentsService, S3Storage, "Загрузка контента в хранилище", "S3 API")
+
+@enduml
