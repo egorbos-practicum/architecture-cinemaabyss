@@ -60,6 +60,24 @@ spec:
       restartPolicy: Always
       imagePullSecrets:
         - name: dockerconfigjson
+      initContainers:
+        - name: kafka-topics-init
+          image: ghcr.io/egorbos-practicum/kafka-topics-init/kafka-topics-init:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - >-
+                {{ range $i, $topic := .Values.kafka.topics }}{{ if $i }} && {{ end }}./KafkaTopicsInit --bootstrap-server kafka:9092 --topic {{ $topic.name }} --partitions {{ $topic.partitions }} --replication-factor {{ $topic.replicationFactor }}{{ end }}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: dockerconfigjson
 ---
 apiVersion: v1
 kind: Service
