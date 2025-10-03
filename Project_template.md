@@ -5,6 +5,7 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
+
 [Диаграмма контейнеров системы](diagrams/system-containers-diagram.puml)
 
 # Задание 2
@@ -113,6 +114,11 @@ jobs:
 Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
 
+![Workflows](images/workflows-screenshot.png)
+
+![Packages](images/packages-screenshot.png)
+
+![GithubTests](images/gh-tests-screenshot.png)
 
 ### Proxy в Kubernetes
 
@@ -279,6 +285,17 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+![KubernetesTests](images/k8s-tests-screenshot.png)
+
+![KubernetesEventsService](images/k8s-events-service.png)
+
+![KubernetesMoviesRequest](images/k8s-movies-request.png)
+
+![KubernetesProxyService](images/k8s-proxy-service.png)
+
+![KubernetesMonolith](images/k8s-monolith.png)
+
+![KubernetesMoviesService](images/k8s-movies-service.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -353,6 +370,8 @@ minikube tunnel
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+![Helm](images/helm-screenshot.png)
 
 ## Удаляем все
 

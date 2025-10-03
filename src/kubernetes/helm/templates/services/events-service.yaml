@@ -25,7 +25,59 @@ spec:
     spec:
       containers:
       - name: events-service
-       .... тут
+        image: {{ .Values.eventsService.image.repository }}:{{ .Values.eventsService.image.tag }}
+        imagePullPolicy: {{ .Values.eventsService.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.eventsService.service.targetPort }}
+        env:
+        - name: PORT
+          value: "{{ .Values.eventsService.service.targetPort }}"
+        - name: KAFKA_BROKERS
+          value: "$(KAFKA_BROKERS)"
+        - name: MOVIE_EVENTS_TOPIC
+          value: "$(MOVIE_EVENTS_TOPIC)"
+        - name: PAYMENT_EVENTS_TOPIC
+          value: "$(PAYMENT_EVENTS_TOPIC)"
+        - name: USER_EVENTS_TOPIC
+          value: "$(USER_EVENTS_TOPIC)"
+        envFrom:
+        - configMapRef:
+            name: cinemaabyss-config
+        resources:
+          {{- toYaml .Values.eventsService.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /api/events/health
+            port: {{ .Values.eventsService.service.targetPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/events/health
+            port: {{ .Values.eventsService.service.targetPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: dockerconfigjson
+      initContainers:
+        - name: kafka-topics-init
+          image: ghcr.io/egorbos-practicum/kafka-topics-init/kafka-topics-init:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - >-
+                {{ range $i, $topic := .Values.kafka.topics }}{{ if $i }} && {{ end }}./KafkaTopicsInit --bootstrap-server kafka:9092 --topic {{ $topic.name }} --partitions {{ $topic.partitions }} --replication-factor {{ $topic.replicationFactor }}{{ end }}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: dockerconfigjson
 ---
 apiVersion: v1
 kind: Service
@@ -37,5 +89,10 @@ metadata:
     app.kubernetes.io/name: {{ include "cinemaabyss.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
- ........ и тут
+  selector:
+    app: events-service
+  ports:
+  - port: {{ .Values.eventsService.service.port }}
+    targetPort: {{ .Values.eventsService.service.targetPort }}
+  type: {{ .Values.eventsService.service.type }}
 {{- end }}
